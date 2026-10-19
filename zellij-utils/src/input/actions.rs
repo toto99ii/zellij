@@ -342,6 +342,14 @@ pub enum Action {
         no_focus: bool,
         tab_id: Option<usize>,
     },
+    /// Split the pane into four panes.
+    NewFourifyPane {
+        command: Option<RunCommandAction>,
+        pane_name: Option<String>,
+        near_current_pane: bool,
+        no_focus: bool,
+        tab_id: Option<usize>,
+    },
     /// Embed focused pane in tab if floating or float focused pane if embedded
     TogglePaneEmbedOrFloating,
     /// Toggle the visibility of all floating panes (if any) in the current Tab
@@ -2472,7 +2480,8 @@ impl Action {
             | Action::NewFloatingPane { command, .. }
             | Action::NewTiledPane { command, .. }
             | Action::NewInPlacePane { command, .. }
-            | Action::NewStackedPane { command, .. } => {
+            | Action::NewStackedPane { command, .. }
+            | Action::NewFourifyPane { command, .. } => {
                 command
                     .as_mut()
                     .map(|c| c.populate_originating_plugin(originating_plugin));

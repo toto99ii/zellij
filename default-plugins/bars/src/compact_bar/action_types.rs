@@ -35,6 +35,7 @@ pub enum ActionType {
     Detach,
     Quit,
     NewStackedPane,
+    NewFourifyPane,
     Other(String),
 }
 
@@ -77,6 +78,7 @@ impl ActionType {
             ActionType::SwitchToMode(input_mode) => format!("{:?}", input_mode),
             ActionType::TogglePaneEmbedOrFloating => "Float or embed".to_string(),
             ActionType::NewStackedPane => "New stacked pane".to_string(),
+            ActionType::NewFourifyPane => "Fourify panes".to_string(),
             ActionType::ToggleFocusFullscreen => "Toggle fullscreen".to_string(),
             ActionType::ToggleFloatingPanes => "Show/hide floating panes".to_string(),
             ActionType::CloseFocus => "Close pane".to_string(),
@@ -116,7 +118,11 @@ impl ActionType {
             Action::NewPane {
                 direction: None, ..
             } => ActionType::NewPaneWithoutDirection,
+            Action::NewTiledPane {
+                direction: None, ..
+            } => ActionType::NewFourifyPane,
             Action::NewStackedPane { .. } => ActionType::NewStackedPane,
+            Action::NewFourifyPane { .. } => ActionType::NewFourifyPane,
             Action::BreakPaneLeft | Action::BreakPaneRight => ActionType::BreakPaneLeftOrRight,
             Action::GoToPreviousTab | Action::GoToNextTab => ActionType::GoToAdjacentTab,
             Action::ScrollUp | Action::ScrollDown => ActionType::Scroll,

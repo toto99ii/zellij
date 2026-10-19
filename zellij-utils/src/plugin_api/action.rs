@@ -1735,6 +1735,32 @@ impl TryFrom<Action> for ProtobufAction {
                     )),
                 })
             },
+            Action::NewFourifyPane {
+                command: run_command_action,
+                pane_name,
+                near_current_pane,
+                ..
+            } => {
+                let command = run_command_action.and_then(|r| {
+                    let mut protobuf_run_command_action: ProtobufRunCommandAction =
+                        r.try_into().ok()?;
+                    let pane_name = pane_name.and_then(|n| n.try_into().ok());
+                    protobuf_run_command_action.pane_name = pane_name;
+                    Some(protobuf_run_command_action)
+                });
+                Ok(ProtobufAction {
+                    name: ProtobufActionName::NewTiledPane as i32,
+                    optional_payload: Some(OptionalPayload::NewTiledPanePayload(
+                        NewTiledPanePayload {
+                            direction: None,
+                            command,
+                            near_current_pane,
+                            borderless: None,
+                            border_style: None,
+                        },
+                    )),
+                })
+            },
             Action::TogglePaneEmbedOrFloating => Ok(ProtobufAction {
                 name: ProtobufActionName::TogglePaneEmbedOrFloating as i32,
                 optional_payload: None,
@@ -3785,6 +3811,24 @@ mod tests {
         let protobuf: ProtobufAction = original.clone().try_into().expect("encode");
         let decoded: Action = protobuf.try_into().expect("decode");
         assert_eq!(original, decoded);
+    }
+
+    #[test]
+    fn new_fourify_pane_action_uses_the_tiled_pane_protobuf_shape() {
+        let original = Action::NewFourifyPane {
+            command: None,
+            pane_name: None,
+            near_current_pane: false,
+            no_focus: false,
+            tab_id: None,
+        };
+        let protobuf: ProtobufAction = original.try_into().expect("encode");
+        assert_eq!(protobuf.name, ProtobufActionName::NewTiledPane as i32);
+        let Some(OptionalPayload::NewTiledPanePayload(payload)) = protobuf.optional_payload else {
+            panic!("missing tiled pane payload");
+        };
+        assert_eq!(payload.direction, None);
+        assert!(payload.command.is_none());
     }
 
     #[test]
