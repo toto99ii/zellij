@@ -1097,6 +1097,85 @@ fn route_action_with_origin(
                 ))
                 .with_context(err_context)?;
         },
+        Action::NewFourifyPane {
+            command: run_command,
+            pane_name: name,
+            near_current_pane,
+            no_focus,
+            tab_id,
+        } => {
+            let run_cmd = run_command
+                .map(|cmd| TerminalAction::RunCommand(cmd.into()))
+                .or_else(|| default_shell.clone());
+            let client_tab_index_or_paneid =
+                new_pane_routing(no_focus, near_current_pane, tab_id, pane_id, client_id);
+            let spawn_pane = |
+                direction: Direction,
+                command: Option<TerminalAction>,
+                pane_name: Option<String>,
+                completion_tx: Option<oneshot::Sender<ActionCompletionResult>>,
+            | {
+                senders
+                    .send_to_pty(PtyInstruction::SpawnTerminal(
+                        command,
+                        pane_name,
+                        NewPanePlacement::Tiled {
+                            direction: Some(direction),
+                            borderless: None,
+                            border_style: None,
+                        },
+                        false,
+                        client_tab_index_or_paneid.clone(),
+                        completion_tx.map(NotificationEnd::new),
+                        false,
+                        origin_pane_id,
+                    ))
+                    .with_context(err_context)
+            };
+            let wait_for_step = |receiver| {
+                let result = wait_for_action_completion(receiver, &action_name, false);
+                result
+                    .error_message
+                    .map_or(Ok(()), |message| Err(anyhow::anyhow!(message)))
+            };
+            let move_focus = |direction| {
+                let (completion_tx, completion_rx) = oneshot::channel();
+                let instruction = match direction {
+                    Direction::Left => ScreenInstruction::MoveFocusLeft(
+                        client_id,
+                        Some(NotificationEnd::new(completion_tx)),
+                    ),
+                    Direction::Right => ScreenInstruction::MoveFocusRight(
+                        client_id,
+                        Some(NotificationEnd::new(completion_tx)),
+                    ),
+                    Direction::Up => ScreenInstruction::MoveFocusUp(
+                        client_id,
+                        Some(NotificationEnd::new(completion_tx)),
+                    ),
+                    Direction::Down => ScreenInstruction::MoveFocusDown(
+                        client_id,
+                        Some(NotificationEnd::new(completion_tx)),
+                    ),
+                };
+                senders
+                    .send_to_screen(instruction)
+                    .with_context(err_context)?;
+                wait_for_step(completion_rx)
+            };
+
+            let (step_tx, step_rx) = oneshot::channel();
+            spawn_pane(Direction::Right, default_shell.clone(), name.clone(), Some(step_tx))?;
+            wait_for_step(step_rx)?;
+
+            move_focus(Direction::Left)?;
+            let (step_tx, step_rx) = oneshot::channel();
+            spawn_pane(Direction::Down, default_shell.clone(), name.clone(), Some(step_tx))?;
+            wait_for_step(step_rx)?;
+
+            move_focus(Direction::Right)?;
+            spawn_pane(Direction::Down, run_cmd, name, Some(completion_tx))?;
+        },
         Action::NewTiledPane {
             direction,
             command: run_command,

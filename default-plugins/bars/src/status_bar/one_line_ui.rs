@@ -1520,6 +1520,15 @@ fn get_keys_and_hints(mi: &ModeInfo) -> Vec<(String, String, Vec<KeyWithModifier
         (s("Rename"), s("Rename"),
             single_action_key(&km, &[A::SwitchToMode{input_mode: IM::RenamePane}, A::PaneNameInput{input: vec![0]}])),
         (s("Toggle Fullscreen"), s("Fullscreen"), single_action_key(&km, &[A::ToggleFocusFullscreen, TO_NORMAL])),
+        (s("Fourify"), s("Fourify"), first_action_key_matching(&km, |action| {
+            matches!(
+                action,
+                A::NewFourifyPane { .. }
+                    | A::NewTiledPane {
+                        direction: None, ..
+                    }
+            )
+        })),
         (s("Toggle Floating"), s("Floating"),
             single_action_key(&km, &[A::ToggleFloatingPanes, TO_NORMAL])),
         (s("Toggle Embed"), s("Embed"), single_action_key(&km, &[A::TogglePaneEmbedOrFloating, TO_NORMAL])),
@@ -1710,6 +1719,22 @@ fn single_action_key(
     } else {
         vec![]
     }
+}
+
+fn first_action_key_matching(
+    keymap: &[(KeyWithModifier, Vec<Action>)],
+    predicate: impl Fn(&Action) -> bool,
+) -> Vec<KeyWithModifier> {
+    keymap
+        .iter()
+        .find_map(|(key, actions)| {
+            actions
+                .first()
+                .filter(|action| predicate(action))
+                .map(|_| key.clone())
+        })
+        .into_iter()
+        .collect()
 }
 
 fn session_manager_key(keymap: &[(KeyWithModifier, Vec<Action>)]) -> Vec<KeyWithModifier> {

@@ -142,7 +142,7 @@ pub const MODES: &[&str] = &[
 ];
 const DIRECTIONS: &[&str] = &["left", "right", "up", "down"];
 const OPTIONAL_DIRECTIONS: &[&str] = &["", "left", "right", "up", "down"];
-const NEW_PANE_PLACES: &[&str] = &["", "right", "down", "stacked"];
+const NEW_PANE_PLACES: &[&str] = &["", "right", "down", "stacked", "fourify"];
 const LEFT_RIGHT: &[&str] = &["left", "right"];
 const START_END: &[&str] = &["start", "end"];
 const RESIZES: &[&str] = &[

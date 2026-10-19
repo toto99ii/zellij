@@ -2425,6 +2425,22 @@ impl From<crate::input::actions::Action>
             crate::input::actions::Action::MoveTabToPosition { id, position } => {
                 ActionType::MoveTabToPosition(MoveTabToPositionAction { id, position })
             },
+            crate::input::actions::Action::NewFourifyPane {
+                pane_name,
+                near_current_pane,
+                no_focus,
+                tab_id,
+                ..
+            } => ActionType::NewTiledPane(NewTiledPaneAction {
+                direction: None,
+                command: None,
+                pane_name,
+                near_current_pane,
+                no_focus,
+                borderless: None,
+                border_style: None,
+                tab_id: tab_id.map(|t| t as u32),
+            }),
         };
 
         Self {

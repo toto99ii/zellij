@@ -407,6 +407,7 @@ impl KeybindProcessor {
                     |action: &Action| matches!(action, Action::ToggleFocusFullscreen),
                     |action: &Action| matches!(action, Action::ToggleFloatingPanes),
                     |action: &Action| matches!(action, Action::TogglePaneEmbedOrFloating),
+                    |action: &Action| matches!(action, Action::NewFourifyPane { .. }),
                     |action: &Action| {
                         matches!(
                             action,

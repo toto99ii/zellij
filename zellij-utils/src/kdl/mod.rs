@@ -606,6 +606,14 @@ impl Action {
                         no_focus: false,
                         tab_id: None,
                     });
+                } else if string == "fourify" {
+                    return Ok(Action::NewFourifyPane {
+                        command: None,
+                        pane_name: None,
+                        near_current_pane: false,
+                        no_focus: false,
+                        tab_id: None,
+                    });
                 } else {
                     let direction = Direction::from_str(string.as_str()).map_err(|_| {
                         ConfigError::new_kdl_error(
